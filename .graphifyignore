@@ -1,0 +1,9 @@
+# Installed Claude Code skill packages (tooling, not project content)
+.agents/
+agent/
+.claude/
+skills-lock.json
+
+# Raw scraped poe2db data - flat JSON records, contribute no graph structure
+# (no functions/classes to extract), just slow down every scan
+backend/data/raw/

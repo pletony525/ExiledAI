@@ -1,0 +1,6 @@
+psycopg[binary]==3.3.4
+python-dotenv==1.2.2
+requests==2.34.2
+beautifulsoup4==4.15.0
+lxml==6.1.1
+openai==2.48.0
