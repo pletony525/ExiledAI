@@ -19,11 +19,11 @@ New top-level `overlay/` directory (sibling to `backend/`):
   - `frame: false` (no OS chrome)
   - `transparent: true` (only the chat panel is visible, not a full rectangle)
   - `skipTaskbar: true`
-  - fixed size, not resizable (v1 simplicity)
-  - Registers a global hotkey via Electron's built-in `globalShortcut` module (no extra dependency) that toggles `window.show()` / `window.hide()` — matches the plan's literal "toggle visibility" wording. Not a click-through toggle; when hidden the window doesn't exist on screen at all, when visible it's a normal interactive window.
+  - fixed size, not resizable (v1 simplicity) — starting at 420x560px, a reasonable chat-panel size that doesn't dominate the screen; easy to tune once seen over the real game
+  - Registers the accelerator `CommandOrControl+Shift+Space` via Electron's built-in `globalShortcut` module (no extra dependency) — Electron's cross-platform modifier convention, resolving to `Ctrl+Shift+Space` on the target Windows machine. Chosen to be unlikely to collide with POE2's own bindings or common OS shortcuts. Toggles `window.show()` / `window.hide()`, matching the plan's literal "toggle visibility" wording. Not a click-through toggle; when hidden the window doesn't exist on screen at all, when visible it's a normal interactive window.
 - **`overlay/electron/preload.js`** — minimal preload, standard Electron security defaults (`contextIsolation: true`, `nodeIntegration: false`). The renderer only needs `fetch()`, so this stays thin.
 - **`overlay/src/App.jsx`** — React chat UI (Vite-scaffolded): scrollback list + input box.
-- **`backend/api_server.py`** — new thin FastAPI file exposing `POST /ask`. Imports refactored functions from `rag_loop.py` rather than duplicating retrieval/generation logic.
+- **`backend/api_server.py`** — new thin FastAPI file exposing `POST /ask`, served on `http://localhost:8000`. Imports refactored functions from `rag_loop.py` rather than duplicating retrieval/generation logic.
 - **`backend/rag_loop.py`** — small refactor: extract the core retrieval+answer logic (currently prints directly inside `answer_question`) into a function that *returns* structured data (`{"answer": str}`, at minimum). The existing CLI entry point wraps it and prints, unchanged in behavior — the Step 4 CLI tool keeps working standalone.
 
 ### Approaches considered
