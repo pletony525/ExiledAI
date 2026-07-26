@@ -76,7 +76,10 @@ def fetch_chunk_by_source(cur, source):
     return cur.fetchone()
 
 
-def answer_question(client, cur, question, entity_names):
+def get_answer(client, cur, question, entity_names):
+    """Core retrieval + generation logic, shared by the CLI (main()) and the FastAPI
+    server (api_server.py). Returns structured data instead of printing, so both
+    callers can present it however they need."""
     embedding = client.embeddings.create(model=EMBED_MODEL, input=[question]).data[0].embedding
     chunks = retrieve(cur, embedding)
 
@@ -86,12 +89,6 @@ def answer_question(client, cur, question, entity_names):
         if exact_chunk:
             chunks = [exact_chunk] + chunks
 
-    print("\nRetrieved:")
-    for source, _, metadata, distance in chunks:
-        name = metadata.get("item_name") or metadata.get("mod_name") or source
-        tag = " [exact-match]" if match and source == match[0] else ""
-        print(f"  [{distance:.3f}] ({metadata.get('content_type')}) {name}{tag}")
-
     response = client.chat.completions.create(
         model=CHAT_MODEL,
         messages=[
@@ -99,8 +96,32 @@ def answer_question(client, cur, question, entity_names):
             {"role": "user", "content": build_prompt(question, chunks)},
         ],
     )
+
+    retrieved = [
+        {
+            "source": source,
+            "content_type": metadata.get("content_type"),
+            "name": metadata.get("item_name") or metadata.get("mod_name") or source,
+            "distance": distance,
+            "exact_match": bool(match and source == match[0]),
+        }
+        for source, _, metadata, distance in chunks
+    ]
+
+    return {"answer": response.choices[0].message.content, "retrieved": retrieved}
+
+
+def answer_question(client, cur, question, entity_names):
+    """CLI wrapper around get_answer() - prints the same output format as before."""
+    result = get_answer(client, cur, question, entity_names)
+
+    print("\nRetrieved:")
+    for r in result["retrieved"]:
+        tag = " [exact-match]" if r["exact_match"] else ""
+        print(f"  [{r['distance']:.3f}] ({r['content_type']}) {r['name']}{tag}")
+
     print("\nAnswer:")
-    print(response.choices[0].message.content)
+    print(result["answer"])
 
 
 def main():
