@@ -29,6 +29,7 @@ function toggleWindow() {
     mainWindow.hide()
   } else {
     mainWindow.show()
+    mainWindow.webContents.focus()
   }
 }
 

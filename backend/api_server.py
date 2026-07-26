@@ -20,11 +20,10 @@ async def lifespan(app: FastAPI):
     database_url = os.environ["DATABASE_URL"]
     openai_api_key = os.environ["OPENAI_API_KEY"]
     state["client"] = OpenAI(api_key=openai_api_key)
-    state["conn"] = psycopg.connect(database_url)
-    state["cur"] = state["conn"].cursor()
-    state["entity_names"] = load_entity_names(state["cur"])
+    state["conn"] = psycopg.connect(database_url, autocommit=True)
+    with state["conn"].cursor() as cur:
+        state["entity_names"] = load_entity_names(cur)
     yield
-    state["cur"].close()
     state["conn"].close()
 
 
@@ -51,5 +50,6 @@ class AskResponse(BaseModel):
 
 @app.post("/ask", response_model=AskResponse)
 def ask(req: AskRequest):
-    result = get_answer(state["client"], state["cur"], req.question, state["entity_names"])
+    with state["conn"].cursor() as cur:
+        result = get_answer(state["client"], cur, req.question, state["entity_names"])
     return {"answer": result["answer"]}
