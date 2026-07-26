@@ -1,0 +1,21 @@
+{
+  "name": "poe2-advisor-overlay",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "build": "vite build",
+    "start": "electron .",
+    "dev": "vite build && electron ."
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^33.2.0"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}
